@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 )
 
 func ReadInputLineByLine(inputFileName string) []string {
@@ -51,4 +52,12 @@ func WriteLineByLine(inputFileName string, lines interface{}) error {
 	}
 	err = writer.Flush()
 	return err
+}
+
+func WriteOutputLineByLine(outputFileName string, result int) error {
+	err := os.WriteFile(outputFileName, []byte(strconv.Itoa(result)), os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -9,7 +9,7 @@ func main() {
 	inputLines := aoccommon.ReadInputLineByLine("input")
 	calibrationValues := calculateCalibrationValues(inputLines)
 	calibrationValue := common.Sum(calibrationValues)
-	err := common.WriteOutputLineByLine("output", calibrationValue)
+	err := aoccommon.WriteOutputLineByLine("output", calibrationValue)
 	if err != nil {
 		panic("oh crap")
 	}
