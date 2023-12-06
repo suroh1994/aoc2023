@@ -14,8 +14,16 @@ func (M MappingTriple) SourceStart() int {
 	return M[1]
 }
 
+func (M MappingTriple) SourceEnd() int {
+	return M[1] + M[2]
+}
+
 func (M MappingTriple) DestinationStart() int {
 	return M[0]
+}
+
+func (M MappingTriple) DestinationEnd() int {
+	return M[0] + M[2]
 }
 
 func (M MappingTriple) RangeLength() int {
@@ -26,6 +34,56 @@ type Mapping struct {
 	Source      string
 	Destination string
 	Triples     []MappingTriple
+}
+
+func (M Mapping) MapValuesToDestValues(sourceValues []int) []int {
+	input := make([][2]int, len(sourceValues))
+
+	for idx, value := range sourceValues {
+		input[idx] = [2]int{value, 1}
+	}
+
+	output := M.MapValueRangesToDestValueRanges(input)
+	result := make([]int, len(output))
+	for idx, out := range output {
+		result[idx] = out[0]
+	}
+
+	return result
+}
+
+func (M Mapping) MapValueRangesToDestValueRanges(sourceValues [][2]int) [][2]int {
+	output := make([][2]int, 0, len(sourceValues))
+	slices.SortFunc(M.Triples, MappingTripleSortBySourceStart)
+
+	for _, sourceValue := range sourceValues {
+		tripleIdx := 0
+		for offset := 0; offset < sourceValue[1]; {
+			startValue := 0
+			count := 0
+			// no more mappings, either no more triples or the next triple starts after the end of this group, keep the rest
+			if (tripleIdx >= len(M.Triples)) || (sourceValue[0]+offset < M.Triples[tripleIdx].SourceStart()) {
+				startValue = sourceValue[0] + offset
+				count = sourceValue[1] - offset
+			} else {
+				startValue = M.Triples[tripleIdx].DestinationStart() + (sourceValue[0] - M.Triples[tripleIdx].SourceStart()) + offset
+				// include up to the end of the mapping or all remaining numbers, depending on what's less
+				count = min(
+					M.Triples[tripleIdx].SourceEnd()-(sourceValue[0]+offset),
+					sourceValue[1]-offset,
+				)
+			}
+
+			// only add if count is positive (which means the current offset value is inside the mapped range)
+			if count > 0 {
+				output = append(output, [2]int{startValue, count})
+				offset += count
+			}
+			tripleIdx++
+		}
+	}
+
+	return output
 }
 
 var (
@@ -93,50 +151,6 @@ func parseNumber(a string) int {
 	return i
 }
 
-func FindLocationsForSeeds(seeds []int, mappings []Mapping) []int {
-	// sort all mappings by source
-	for _, mapping := range mappings {
-		slices.SortFunc(mapping.Triples, MappingTripleSortBySourceStart)
-	}
-
-	locations := make([]int, len(seeds))
-	for idx, seed := range seeds {
-		currentId := seed
-		for _, mapping := range mappings {
-			currentId = FindDestinationValue(currentId, mapping)
-		}
-		locations[idx] = currentId
-	}
-	return locations
-}
-
-func FindDestinationValue(sourceValue int, mapping Mapping) int {
-	for idx := 0; idx < len(mapping.Triples); idx++ {
-		// find the largest source smaller than seed (inc until source larger, go back one step)
-		if mapping.Triples[idx].SourceStart() < sourceValue {
-			continue
-		}
-
-		relevantTriple := mapping.Triples[idx-1]
-		// check if within range
-		if sourceValue <= relevantTriple.SourceStart()+relevantTriple.RangeLength() {
-			// return mapped value
-			offset := sourceValue - relevantTriple.SourceStart()
-			return relevantTriple.DestinationStart() + offset
-		}
-
-		// we are between two mappings
-		break
-	}
-
-	// we are either between mappings or beyond the greatest mapping, return unmapped value
-	return sourceValue
-}
-
 func MappingTripleSortBySourceStart(a, b MappingTriple) int {
 	return a.SourceStart() - b.SourceStart()
-}
-
-func MappingTripleSortByDestinationStart(a, b MappingTriple) int {
-	return a.DestinationStart() - b.DestinationStart()
 }
