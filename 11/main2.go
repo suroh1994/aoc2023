@@ -29,7 +29,7 @@ func main() {
 	fmt.Println(rowsWithGalaxies)
 	fmt.Println(galaxies)
 
-	expansionFactor := 999999
+	expansionFactor := 1000000
 
 	colOffset := make([]int, len(columnsWithGalaxies))
 	for idx := range columnsWithGalaxies {
@@ -38,7 +38,7 @@ func main() {
 		}
 
 		for i := idx; i < len(colOffset); i++ {
-			colOffset[i] += expansionFactor
+			colOffset[i] += expansionFactor - 1
 		}
 	}
 	fmt.Println(colOffset)
@@ -50,7 +50,7 @@ func main() {
 		}
 
 		for i := idx; i < len(rowOffset); i++ {
-			rowOffset[i] += expansionFactor
+			rowOffset[i] += expansionFactor - 1
 		}
 	}
 	fmt.Println(rowOffset)
