@@ -27,3 +27,22 @@ func Transpose[T any](slices2D [][]T) [][]T {
 	}
 	return transposed
 }
+
+func RotateRight[T any](slice2D [][]T) [][]T {
+	if len(slice2D) == 0 {
+		return make([][]T, 0)
+	}
+	output := make([][]T, len(slice2D[0]))
+
+	for i := range output {
+		output[i] = make([]T, len(slice2D))
+	}
+
+	for i := range slice2D {
+		for j := range slice2D[i] {
+			output[j][len(output[0])-1-i] = slice2D[i][j]
+		}
+	}
+
+	return output
+}
