@@ -9,3 +9,11 @@ func MustParseInt(in string) int {
 	}
 	return value
 }
+
+func StringToRuneSlice(in string) []rune {
+	return []rune(in)
+}
+
+func RuneSliceToString(in []rune) string {
+	return string(in)
+}
