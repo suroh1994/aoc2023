@@ -25,9 +25,9 @@ func main() {
 	smokeMaps = append(smokeMaps, lines[start:])
 
 	sum := 0
-	for _, smokeMap := range smokeMaps {
+	for i, smokeMap := range smokeMaps {
 		multiplier := 100
-		mirrorRow := findMirrorRow(smokeMap)
+		mirrorRow := findMirrorRowV2(smokeMap)
 		if mirrorRow == -1 {
 			multiplier = 1
 			// flip map
@@ -35,10 +35,10 @@ func main() {
 			transposedRuneMap := aoc.Transpose(runeMap)
 			smokeMap = aoc.Map(transposedRuneMap, aoc.RuneSliceToString)
 			// find row
-			mirrorRow = findMirrorRow(smokeMap)
+			mirrorRow = findMirrorRowV2(smokeMap)
 		}
 		score := (mirrorRow + 1) * multiplier
-		fmt.Println(score)
+		fmt.Printf("#%d: %d\n", i, score)
 		common.DebugPrintSmokeMap(smokeMap, mirrorRow)
 		sum += score
 	}
@@ -46,19 +46,36 @@ func main() {
 	fmt.Println(sum)
 }
 
-func findMirrorRow(smokeMap []string) int {
+func findMirrorRowV2(smokeMap []string) int {
 	for i := 0; i < len(smokeMap)-1; i++ {
-		if smokeMap[i] == smokeMap[i+1] {
+		differences := countDifferences(smokeMap[i], smokeMap[i+1])
+		if differences < 2 {
 			allRowsMatch := true
+			smudgeFixed := differences == 1
 			// if the next is identical, start going backwards (i=1; i < idx) and compare idx-i with idx+1+i until i == 0 or idx+1+i == len-1
-			for j := 0; 0 <= i-j && i+1+j < len(smokeMap) && allRowsMatch; j++ {
-				allRowsMatch = smokeMap[i-j] == smokeMap[i+1+j]
+			for j := 1; 0 <= i-j && i+1+j < len(smokeMap) && allRowsMatch; j++ {
+				differences = countDifferences(smokeMap[i-j], smokeMap[i+1+j])
+
+				allRowsMatch = differences == 0 || (differences == 1 && !smudgeFixed)
+				if differences == 1 {
+					smudgeFixed = true
+				}
 			}
 			// if mirror plane found, return idx
-			if allRowsMatch {
+			if allRowsMatch && smudgeFixed {
 				return i
 			}
 		}
 	}
 	return -1
+}
+
+func countDifferences(lineA, lineB string) int {
+	count := 0
+	for i := range lineA {
+		if lineA[i] != lineB[i] {
+			count++
+		}
+	}
+	return count
 }
