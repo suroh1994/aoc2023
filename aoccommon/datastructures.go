@@ -57,3 +57,13 @@ func (s *SortedQueue[T]) Pop() (T, bool) {
 	s.content = s.content[1:]
 	return head, true
 }
+
+func (s *SortedQueue[T]) Clean(cleanFunc func(T) bool) {
+	for idx := 0; idx < len(s.content); {
+		if cleanFunc(s.content[idx]) {
+			s.content = append(s.content[:idx], s.content[idx+1:]...)
+		} else {
+			idx++
+		}
+	}
+}

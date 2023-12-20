@@ -100,3 +100,30 @@ func TestPosition2D_InBounds(t *testing.T) {
 		t.Errorf("position is out of bounds, Y is below 0")
 	}
 }
+
+func TestSortedQueue_Clean(t *testing.T) {
+	input := []int{1, 5, 7, 2, 8, 4, 2}
+	sortedQueue := NewSortedQueue[int](func(a, b int) int {
+		return a - b
+	})
+
+	for _, in := range input {
+		sortedQueue.Insert(in)
+	}
+
+	sortedQueue.Clean(func(elem int) bool {
+		return elem > 4
+	})
+
+	expected := []int{1, 2, 2, 4}
+	for _, expectedValue := range expected {
+		actualValue, exists := sortedQueue.Pop()
+		if !exists {
+			t.Errorf("queue contains not enough values")
+		}
+
+		if actualValue != expectedValue {
+			t.Errorf("queue did not sort the values as expected: got %v instead of %v", actualValue, expectedValue)
+		}
+	}
+}
